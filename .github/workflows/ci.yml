@@ -53,7 +53,7 @@ jobs:
             # 2. Traemos los últimos cambios de main
             git pull origin main
             
-            # 3. Activamos el entorno virtual
+            # 3. Activamos el entorno 
             source .venv/bin/activate
             
             # 4. Instalamos las dependencias de producción 
