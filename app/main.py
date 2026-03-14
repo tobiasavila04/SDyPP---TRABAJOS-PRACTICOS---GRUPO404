@@ -48,7 +48,7 @@ def health():
     Returns:
         _type_: _description_
     """
-    return {"status": "ok"}
+    return {"status": "health"}
 
 
 @app.get("/items")
