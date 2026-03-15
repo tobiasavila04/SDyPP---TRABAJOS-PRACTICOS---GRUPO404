@@ -36,8 +36,8 @@ jobs:
   deploy:
     name: Deploy to EC2
     runs-on: ubuntu-latest
-    needs: test # Solo arranca si el job "test" fue exitoso
-    if: github.ref == 'refs/heads/main' && github.event_name == 'push' # Solo despliega en la rama main
+    needs: test 
+    if: github.ref == 'refs/heads/main' && github.event_name == 'push'
 
     steps:
       - name: Execute SSH Commands on EC2
@@ -53,8 +53,8 @@ jobs:
             # 2. Traemos los últimos cambios de main
             git pull origin main
             
-            # 3. Activamos el entorno virtual
-            source venv/bin/activate
+            # 3. Activamos entorno 
+            source .venv/bin/activate
             
             # 4. Instalamos las dependencias de producción 
             pip install -r requirements.txt
