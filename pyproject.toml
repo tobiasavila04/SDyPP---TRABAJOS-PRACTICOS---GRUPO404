@@ -1,6 +1,7 @@
 [tool.ruff]
 line-length = 88
 target-version = "py311"
+exclude = ["tp1/HIT8/sd2026_pb2.py", "tp1/HIT8/sd2026_pb2_grpc.py"]
 
 [tool.ruff.lint]
 select = ["E", "F", "I"]  # pycodestyle, pyflakes, isort
