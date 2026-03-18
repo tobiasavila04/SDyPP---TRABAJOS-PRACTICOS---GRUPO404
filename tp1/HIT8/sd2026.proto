@@ -1,0 +1,76 @@
+syntax = "proto3";
+
+package sd2026;
+
+// ---------------------------------------------------------------------------
+// Servicio de Saludos — entre nodos C
+// ---------------------------------------------------------------------------
+
+message GreetingRequest {
+  int32  from_port  = 1;
+  string message    = 2;
+  string timestamp  = 3;
+}
+
+message GreetingResponse {
+  int32  from_port  = 1;
+  string message    = 2;
+  string timestamp  = 3;
+}
+
+service GreetingService {
+  rpc Greet(GreetingRequest) returns (GreetingResponse);
+}
+
+// ---------------------------------------------------------------------------
+// Servicio de Registro — nodos C se registran en D
+// ---------------------------------------------------------------------------
+
+message NodeInfo {
+  string host          = 1;
+  int32  port          = 2;
+  string registered_at = 3;
+}
+
+message RegisterRequest {
+  string host = 1;
+  int32  port = 2;
+}
+
+message UnregisterRequest {
+  string host = 1;
+  int32  port = 2;
+}
+
+message UnregisterResponse {
+  bool removed = 1;
+}
+
+message RegisterResponse {
+  string            assigned_window = 1;
+  repeated NodeInfo peers           = 2;
+}
+
+message HealthRequest {}
+
+message HealthResponse {
+  string status           = 1;
+  int32  registered_nodes = 2;
+  double uptime_seconds   = 3;
+  int32  grpc_port        = 4;
+  string timestamp        = 5;
+}
+
+message NodesRequest {}
+
+message NodesResponse {
+  int32             count = 1;
+  repeated NodeInfo nodes = 2;
+}
+
+service RegistryService {
+  rpc Register   (RegisterRequest)   returns (RegisterResponse);
+  rpc Unregister (UnregisterRequest) returns (UnregisterResponse);
+  rpc Health     (HealthRequest)     returns (HealthResponse);
+  rpc GetNodes   (NodesRequest)      returns (NodesResponse);
+}
