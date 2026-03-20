@@ -25,7 +25,7 @@ jobs:
         run: pip install -r requirements-dev.txt
 
       - name: Lint (ruff check)
-        run: ruff check . [cite_start]--fix
+        run: ruff check . --fix --line-length 150
 
       - name: Format check (ruff format)
         run: ruff format --check . --line-length 150
