@@ -96,9 +96,7 @@ def client_thread(remote_host: str, remote_port: int, own_port: int) -> None:
     """Se conecta al otro C, envía saludo JSON y recibe respuesta JSON."""
     attempt = 1
     while True:
-        print(
-            f"[C-CLIENT] Intento #{attempt} conectando a {remote_host}:{remote_port}..."
-        )
+        print(f"[C-CLIENT] Intento #{attempt} conectando a {remote_host}:{remote_port}...")
         try:
             with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as sock:
                 sock.connect((remote_host, remote_port))

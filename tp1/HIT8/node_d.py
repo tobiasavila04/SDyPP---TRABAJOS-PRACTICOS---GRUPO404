@@ -55,22 +55,12 @@ class RegistryServicer(sd2026_pb2_grpc.RegistryServiceServicer):
             "registered_at": datetime.now(timezone.utc).isoformat(),
         }
         with _registry_lock:
-            already = any(
-                n["host"] == node["host"] and n["port"] == node["port"]
-                for n in _registry
-            )
+            already = any(n["host"] == node["host"] and n["port"] == node["port"] for n in _registry)
             if not already:
                 _registry.append(node)
-            peers_snapshot = [
-                n
-                for n in _registry
-                if not (n["host"] == node["host"] and n["port"] == node["port"])
-            ]
+            peers_snapshot = [n for n in _registry if not (n["host"] == node["host"] and n["port"] == node["port"])]
 
-        print(
-            f"[D-gRPC] Registrado {node['host']}:{node['port']} "
-            f"— total: {len(_registry)}"
-        )
+        print(f"[D-gRPC] Registrado {node['host']}:{node['port']} — total: {len(_registry)}")
 
         return sd2026_pb2.RegisterResponse(
             assigned_window="current",
@@ -88,9 +78,7 @@ class RegistryServicer(sd2026_pb2_grpc.RegistryServiceServicer):
         host, port = request.host, request.port
         with _registry_lock:
             before = len(_registry)
-            _registry[:] = [
-                n for n in _registry if not (n["host"] == host and n["port"] == port)
-            ]
+            _registry[:] = [n for n in _registry if not (n["host"] == host and n["port"] == port)]
             removed = len(_registry) < before
         print(f"[D-gRPC] Desconectado {host}:{port} — total: {len(_registry)}")
         return sd2026_pb2.UnregisterResponse(removed=removed)

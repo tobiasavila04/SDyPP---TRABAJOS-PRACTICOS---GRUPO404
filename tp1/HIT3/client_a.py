@@ -25,9 +25,7 @@ def main():
         respuesta = sock.recv(1024)
         print(f"[A] Respuesta de B: {respuesta.decode()}")
 
-        print(
-            "[A] Manteniendo conexion abierta... (mata este proceso para probar HIT #3)"
-        )
+        print("[A] Manteniendo conexion abierta... (mata este proceso para probar HIT #3)")
         while True:
             time.sleep(1)
 

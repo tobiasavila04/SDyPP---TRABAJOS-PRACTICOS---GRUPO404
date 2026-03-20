@@ -84,22 +84,15 @@ def _handle_greeting(conn: socket.socket, addr: tuple, own_port: int) -> None:
 # ---------------------------------------------------------------------------
 
 
-def register_and_greet(
-    registry_host: str, registry_port: int, own_host: str, own_port: int
-) -> None:
+def register_and_greet(registry_host: str, registry_port: int, own_host: str, own_port: int) -> None:
     """Se registra en D y saluda a todos los peers que D devuelve."""
     attempt = 1
     while True:
-        print(
-            f"[C] Intento #{attempt} registrandose en D "
-            f"({registry_host}:{registry_port})..."
-        )
+        print(f"[C] Intento #{attempt} registrandose en D ({registry_host}:{registry_port})...")
         try:
             with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as sock:
                 sock.connect((registry_host, registry_port))
-                send_json(
-                    sock, {"type": "register", "host": own_host, "port": own_port}
-                )
+                send_json(sock, {"type": "register", "host": own_host, "port": own_port})
                 response = recv_json(sock)
 
             peers = response.get("peers", [])
@@ -109,9 +102,7 @@ def register_and_greet(
             return
 
         except (ConnectionRefusedError, ConnectionResetError, OSError) as e:
-            print(
-                f"[C] Error al registrarse: {e}. Reintentando en {RECONNECT_DELAY}s..."
-            )
+            print(f"[C] Error al registrarse: {e}. Reintentando en {RECONNECT_DELAY}s...")
             attempt += 1
             time.sleep(RECONNECT_DELAY)
 
@@ -152,9 +143,7 @@ def _get_own_ip() -> str:
 def main() -> None:
     parser = argparse.ArgumentParser(description="Nodo C con registro en D (HIT #6)")
     parser.add_argument("--registry-host", required=True, help="IP del nodo D")
-    parser.add_argument(
-        "--registry-port", type=int, required=True, help="Puerto TCP de D"
-    )
+    parser.add_argument("--registry-port", type=int, required=True, help="Puerto TCP de D")
     parser.add_argument(
         "--own-host",
         default=None,

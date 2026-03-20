@@ -40,10 +40,7 @@ class GreetingServicer(sd2026_pb2_grpc.GreetingServiceServicer):
         self._own_port = own_port
 
     def Greet(self, request, context):
-        print(
-            f"[C-SERVER] Saludo gRPC recibido — "
-            f"from_port={request.from_port} msg='{request.message}'"
-        )
+        print(f"[C-SERVER] Saludo gRPC recibido — from_port={request.from_port} msg='{request.message}'")
         return sd2026_pb2.GreetingResponse(
             from_port=self._own_port,
             message=f"Hola! Soy C en puerto {self._own_port}. Saludo recibido.",
@@ -56,9 +53,7 @@ def start_greeting_server() -> int:
     server = grpc.server(futures.ThreadPoolExecutor(max_workers=10))
     # Obtener el puerto real antes de crear el servicer
     assigned_port = server.add_insecure_port("[::]:0")
-    sd2026_pb2_grpc.add_GreetingServiceServicer_to_server(
-        GreetingServicer(assigned_port), server
-    )
+    sd2026_pb2_grpc.add_GreetingServiceServicer_to_server(GreetingServicer(assigned_port), server)
     server.start()
     print(f"[C-SERVER] Servidor gRPC de saludos en puerto {assigned_port}")
     threading.Thread(target=server.wait_for_termination, daemon=True).start()
@@ -82,10 +77,7 @@ def register_and_greet(
 
     attempt = 1
     while True:
-        print(
-            f"[C] Intento #{attempt} — registrandose en D "
-            f"({registry_host}:{registry_grpc_port})..."
-        )
+        print(f"[C] Intento #{attempt} — registrandose en D ({registry_host}:{registry_grpc_port})...")
         try:
             response = stub.Register(
                 sd2026_pb2.RegisterRequest(host=own_host, port=own_grpc_port),
@@ -118,10 +110,7 @@ def _greet_peer(host: str, port: int, own_port: int) -> None:
             ),
             timeout=5,
         )
-        print(
-            f"[C-CLIENT] Respuesta gRPC de {host}:{port} — "
-            f"from_port={response.from_port} msg='{response.message}'"
-        )
+        print(f"[C-CLIENT] Respuesta gRPC de {host}:{port} — from_port={response.from_port} msg='{response.message}'")
         channel.close()
     except grpc.RpcError as e:
         print(f"[C-CLIENT] No se pudo saludar a {host}:{port} — {e.code()}")
@@ -132,9 +121,7 @@ def _greet_peer(host: str, port: int, own_port: int) -> None:
 # ---------------------------------------------------------------------------
 
 
-def _unregister(
-    registry_host: str, registry_grpc_port: int, own_host: str, own_grpc_port: int
-) -> None:
+def _unregister(registry_host: str, registry_grpc_port: int, own_host: str, own_grpc_port: int) -> None:
     try:
         channel = grpc.insecure_channel(f"{registry_host}:{registry_grpc_port}")
         stub = sd2026_pb2_grpc.RegistryServiceStub(channel)
@@ -190,9 +177,7 @@ def main() -> None:
             time.sleep(1)
     except KeyboardInterrupt:
         print("\n[C] Terminando.")
-        _unregister(
-            args.registry_host, args.registry_grpc_port, own_host, own_grpc_port
-        )
+        _unregister(args.registry_host, args.registry_grpc_port, own_host, own_grpc_port)
 
 
 if __name__ == "__main__":

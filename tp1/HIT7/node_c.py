@@ -84,22 +84,15 @@ def _handle_greeting(conn: socket.socket, addr: tuple, own_port: int) -> None:
 # ---------------------------------------------------------------------------
 
 
-def register_and_greet(
-    registry_host: str, registry_port: int, own_host: str, own_port: int
-) -> None:
+def register_and_greet(registry_host: str, registry_port: int, own_host: str, own_port: int) -> None:
     """Se inscribe en D para la proxima ventana y saluda a los peers actuales."""
     attempt = 1
     while True:
-        print(
-            f"[C] Intento #{attempt} — inscribiendose en D "
-            f"({registry_host}:{registry_port})..."
-        )
+        print(f"[C] Intento #{attempt} — inscribiendose en D ({registry_host}:{registry_port})...")
         try:
             with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as sock:
                 sock.connect((registry_host, registry_port))
-                send_json(
-                    sock, {"type": "register", "host": own_host, "port": own_port}
-                )
+                send_json(sock, {"type": "register", "host": own_host, "port": own_port})
                 response = recv_json(sock)
 
             assigned = response.get("assigned_window", "desconocida")
@@ -151,9 +144,7 @@ def _greet_peer(host: str, port: int, own_port: int) -> None:
 # ---------------------------------------------------------------------------
 
 
-def _unregister(
-    registry_host: str, registry_port: int, own_host: str, own_port: int
-) -> None:
+def _unregister(registry_host: str, registry_port: int, own_host: str, own_port: int) -> None:
     try:
         with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as sock:
             sock.settimeout(3)
@@ -175,9 +166,7 @@ def _get_own_ip() -> str:
 
 
 def main() -> None:
-    parser = argparse.ArgumentParser(
-        description="Nodo C — Sistema de Inscripciones (HIT #7)"
-    )
+    parser = argparse.ArgumentParser(description="Nodo C — Sistema de Inscripciones (HIT #7)")
     parser.add_argument("--registry-host", required=True)
     parser.add_argument("--registry-port", type=int, required=True)
     parser.add_argument("--own-host", default=None)
@@ -198,9 +187,7 @@ def main() -> None:
 
     print(f"[C] Iniciando en {own_host}:{own_port}")
 
-    threading.Thread(
-        target=server_thread, args=(srv_sock, own_port), daemon=True, name="c-server"
-    ).start()
+    threading.Thread(target=server_thread, args=(srv_sock, own_port), daemon=True, name="c-server").start()
 
     threading.Thread(
         target=register_and_greet,

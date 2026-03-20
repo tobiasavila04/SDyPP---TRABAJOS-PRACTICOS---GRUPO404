@@ -48,9 +48,7 @@ def client_thread(remote_host, remote_port, own_port):
     """
     attempt = 1
     while True:
-        print(
-            f"[C-CLIENT] Intento #{attempt} conectando a {remote_host}:{remote_port}..."
-        )
+        print(f"[C-CLIENT] Intento #{attempt} conectando a {remote_host}:{remote_port}...")
         try:
             with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as sock:
                 sock.connect((remote_host, remote_port))
@@ -58,10 +56,7 @@ def client_thread(remote_host, remote_port, own_port):
                 sock.sendall(saludo.encode())
                 print(f"[C-CLIENT] Saludo enviado: {saludo}")
                 respuesta = sock.recv(1024)
-                print(
-                    f"[C-CLIENT] Respuesta de {remote_host}:{remote_port}: "
-                    f"{respuesta.decode()}"
-                )
+                print(f"[C-CLIENT] Respuesta de {remote_host}:{remote_port}: {respuesta.decode()}")
                 return  # saludo completado, el cliente termina
         except (ConnectionRefusedError, ConnectionResetError, OSError) as e:
             print(f"[C-CLIENT] Error: {e}. Reintentando en {RECONNECT_DELAY}s...")
@@ -71,16 +66,10 @@ def client_thread(remote_host, remote_port, own_port):
 
 def main():
     parser = argparse.ArgumentParser(description="Nodo C bidireccional (HIT #4)")
-    parser.add_argument(
-        "--listen-host", default="0.0.0.0", help="IP donde escuchar (default: 0.0.0.0)"
-    )
-    parser.add_argument(
-        "--listen-port", type=int, required=True, help="Puerto propio de escucha"
-    )
+    parser.add_argument("--listen-host", default="0.0.0.0", help="IP donde escuchar (default: 0.0.0.0)")
+    parser.add_argument("--listen-port", type=int, required=True, help="Puerto propio de escucha")
     parser.add_argument("--remote-host", required=True, help="IP del otro nodo C")
-    parser.add_argument(
-        "--remote-port", type=int, required=True, help="Puerto del otro nodo C"
-    )
+    parser.add_argument("--remote-port", type=int, required=True, help="Puerto del otro nodo C")
     args = parser.parse_args()
 
     srv = threading.Thread(

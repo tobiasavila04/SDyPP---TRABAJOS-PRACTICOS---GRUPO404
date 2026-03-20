@@ -76,18 +76,11 @@ def _handle_registration(conn: socket.socket, addr: tuple) -> None:
         }
 
         with _registry_lock:
-            peers = [
-                n
-                for n in _registry
-                if n["host"] != node["host"] or n["port"] != node["port"]
-            ]
+            peers = [n for n in _registry if n["host"] != node["host"] or n["port"] != node["port"]]
             _registry.append(node)
             peers_snapshot = list(peers)
 
-        print(
-            f"[D-TCP] Nodo registrado: {node['host']}:{node['port']} "
-            f"— total: {len(_registry)}"
-        )
+        print(f"[D-TCP] Nodo registrado: {node['host']}:{node['port']} — total: {len(_registry)}")
         _send_json(conn, {"type": "registered", "peers": peers_snapshot})
 
 
