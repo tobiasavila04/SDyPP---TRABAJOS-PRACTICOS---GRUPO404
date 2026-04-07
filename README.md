@@ -3,7 +3,7 @@
 ### Integrantes
 - Renzo Robles
 - Axel Hoffman
-- Tobias Abila
+- Tobias Avila
 
 ### Estructura del repositorio
 
