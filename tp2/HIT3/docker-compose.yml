@@ -1,0 +1,63 @@
+version: "3.8"
+
+services:
+  # ─── Load Balancer (nginx) ────────────────────────────────────────
+  loadbalancer:
+    image: nginx:alpine
+    ports:
+      - "${LB_PORT:-8080}:80"
+    volumes:
+      - ./nginx.conf:/etc/nginx/conf.d/default.conf:ro
+    depends_on:
+      - node1
+      - node2
+      - node3
+    restart: unless-stopped
+
+  # ─── Nodo 1 (ID=3, mayor prioridad) ──────────────────────────────
+  node1:
+    build: .
+    container_name: node1
+    environment:
+      NODE_ID: 3
+      NODE_HOST: node1
+      NODE_PORT: 7001
+      HEARTBEAT_INTERVAL: 10
+      HEARTBEAT_TIMEOUT: 5
+      ELECTION_TIMEOUT: 3
+      PEERS_JSON: '[{"id":2,"host":"node2","port":7002},{"id":1,"host":"node3","port":7003}]'
+    ports:
+      - "7001:7001"
+    restart: unless-stopped
+
+  # ─── Nodo 2 (ID=2) ───────────────────────────────────────────────
+  node2:
+    build: .
+    container_name: node2
+    environment:
+      NODE_ID: 2
+      NODE_HOST: node2
+      NODE_PORT: 7002
+      HEARTBEAT_INTERVAL: 10
+      HEARTBEAT_TIMEOUT: 5
+      ELECTION_TIMEOUT: 3
+      PEERS_JSON: '[{"id":3,"host":"node1","port":7001},{"id":1,"host":"node3","port":7003}]'
+    ports:
+      - "7002:7002"
+    restart: unless-stopped
+
+  # ─── Nodo 3 (ID=1, menor prioridad) ──────────────────────────────
+  node3:
+    build: .
+    container_name: node3
+    environment:
+      NODE_ID: 1
+      NODE_HOST: node3
+      NODE_PORT: 7003
+      HEARTBEAT_INTERVAL: 10
+      HEARTBEAT_TIMEOUT: 5
+      ELECTION_TIMEOUT: 3
+      PEERS_JSON: '[{"id":3,"host":"node1","port":7001},{"id":2,"host":"node2","port":7002}]'
+    ports:
+      - "7003:7003"
+    restart: unless-stopped

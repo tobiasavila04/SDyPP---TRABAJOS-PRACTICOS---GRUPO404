@@ -23,7 +23,7 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
   test:
-    name: Run Tests
+    name: Run Tests (TP1)
     runs-on: ubuntu-latest
     needs: secret-scan
 
@@ -49,10 +49,53 @@ jobs:
       - name: Run tests
         run: pytest tp1/tests/ -v --tb=short
 
+  lint-tp2:
+    name: Lint TP2 (HIT1, HIT2, HIT3)
+    runs-on: ubuntu-latest
+    needs: secret-scan
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: "pip"
+
+      - name: Install dependencies
+        run: |
+          pip install ruff
+          pip install -r tp2/HIT1/requirements.txt
+          pip install -r tp2/HIT2/requirements.txt
+          pip install -r tp2/HIT3/requirements.txt
+
+      - name: Lint (ruff check)
+        run: ruff check tp2/ --line-length 150
+
+      - name: Format check (ruff format)
+        run: ruff format --check tp2/ --line-length 150
+
+  build-tp2:
+    name: Build Docker Images (TP2)
+    runs-on: ubuntu-latest
+    needs: [secret-scan, lint-tp2]
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Build HIT1 image
+        run: docker build -t hit1-task-server tp2/HIT1/
+
+      - name: Build HIT3 images
+        run: docker compose -f tp2/HIT3/docker-compose.yml build
+
   deploy:
     name: Deploy to EC2
     runs-on: ubuntu-latest
-    needs: [secret-scan, test]
+    needs: [secret-scan, test, lint-tp2, build-tp2]
     if: github.ref == 'refs/heads/main' && github.event_name == 'push'
 
     steps:
@@ -62,4 +105,7 @@ jobs:
           host: ${{secrets.EC2_HOST}}
           username: ${{secrets.EC2_USERNAME}}
           key: ${{secrets.EC2_SSH_KEY}}
-          script: bash /home/ubuntu/SD2026-GRUPO404-TP1/scripts/deploy.sh
+          script: |
+            bash /home/ubuntu/SD2026-GRUPO404-TP1/scripts/deploy.sh
+            cd /home/ubuntu/SD2026-GRUPO404-TP1/tp2/HIT1 && pip install -r requirements.txt
+            cd /home/ubuntu/SD2026-GRUPO404-TP1/tp2/HIT2 && pip install -r requirements.txt

@@ -22,6 +22,9 @@ SERVICES=(
     hit7-node-d
     hit8-node-d
     hit-health
+    tp2-hit1-server
+    tp2-hit2-server
+    tp2-hit3-cluster
 )
 
 echo "==> Copiando archivos .service a $SYSTEMD_DIR"
@@ -55,5 +58,10 @@ echo "    HIT6  node-d    → TCP  5005  (registro) / HTTP 8086 (interno)"
 echo "    HIT7  node-d    → TCP  5006  (registro) / HTTP 8087 (interno)"
 echo "    HIT8  node-d    → gRPC 5007               / HTTP 8088 (interno)"
 echo "    Health check    → HTTP 5010  /health"
+echo ""
+echo "  TP2:"
+echo "    HIT1  server    → TCP  6000  (orquestador con containers efímeros)"
+echo "    HIT2  server    → TCP  6001  (pool de workers con Lamport)"
+echo "    HIT3  cluster   → TCP  6080  (LB nginx) / 7001-7003 (nodos Bully)"
 echo ""
 echo "Setup completo."
