@@ -3,7 +3,6 @@ import argparse
 import requests
 import os
 
-
 SERVER_URL = os.environ.get("SERVER_URL", "http://localhost:5000/task")
 
 parser = argparse.ArgumentParser(description="ejecuta operaciones matemáticas en el servidor.")
@@ -22,11 +21,6 @@ PAYLOAD = {
     "operation": args.operacion,
     "values": args.valores,
 }
-
-print("=" * 45)
-print(f"  Operación: {args.operacion}")
-print(f"  Valores:   {args.valores}")
-print("=" * 45)
 
 try:
     respuesta = requests.post(f"{SERVER_URL}", json=PAYLOAD, timeout=60)

@@ -55,7 +55,6 @@ def health():
     return jsonify({"status": "ok"})
 
 
-
 @app.route("/task", methods=["POST"])
 def ejecutarServidorTarea():
 
@@ -63,13 +62,13 @@ def ejecutarServidorTarea():
     if not data:
         return jsonify({"error": "JSON inválido o no proporcionado."}), 400
     
-    opracion = data.get("operation")
+    operacion = data.get("operation")
     valores = data.get("values")
 
-    if not opracion or valores is None:
+    if not operacion or valores is None:
         return jsonify({"error": "Faltan 'operaciones' o 'valores' en el JSON."}), 400
 
-    logging.info(f"Nueva tarea - operacion: {opracion}, valores: {valores}")
+    logging.info(f"Nueva tarea - operacion: {operacion}, valores: {valores}")
 
     nombre_container = f"task-{uuid.uuid4()}"
     puerto_host = encontrar_puerto_libre()
@@ -88,7 +87,7 @@ def ejecutarServidorTarea():
         url_tarea = f"http://localhost:{puerto_host}/run"
         logging.info(f"Enviando tarea al container '{nombre_container}' en {url_tarea}...")
 
-        respuesta = requests.post(url_tarea, json={"operation": opracion, "values": valores}, timeout=60)
+        respuesta = requests.post(url_tarea, json={"operation": operacion, "values": valores}, timeout=60)
 
         respuesta.raise_for_status()
 
