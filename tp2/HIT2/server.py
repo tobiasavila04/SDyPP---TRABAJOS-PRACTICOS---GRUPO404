@@ -154,7 +154,7 @@ def levantar_containers(n: int) -> list[dict]:
                 "docker",
                 "run",
                 "-d",
-                "-p", 
+                "-p",
                 f"{puerto}:8080",
                 "--name",
                 nombre,
