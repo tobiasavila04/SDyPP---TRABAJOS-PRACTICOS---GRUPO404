@@ -107,5 +107,3 @@ jobs:
           key: ${{secrets.EC2_SSH_KEY}}
           script: |
             bash /home/ubuntu/SD2026-GRUPO404-TP1/scripts/deploy.sh
-            cd /home/ubuntu/SD2026-GRUPO404-TP1/tp2/HIT1 && pip install -r requirements.txt
-            cd /home/ubuntu/SD2026-GRUPO404-TP1/tp2/HIT2 && pip install -r requirements.txt
