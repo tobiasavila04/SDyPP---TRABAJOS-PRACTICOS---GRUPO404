@@ -10,9 +10,11 @@ LOCAL_URL = "http://localhost:5000/task"
 parser = argparse.ArgumentParser(description="ejecuta operaciones matemáticas en el servidor.")
 
 parser.add_argument(
-    "--operacion", type=str, required=True,
+    "--operacion",
+    type=str,
+    required=True,
     choices=["suma", "resta", "multiplicacion", "division"],
-    help="operación a ejecutar: suma, resta, multiplicacion o division."
+    help="operación a ejecutar: suma, resta, multiplicacion o division.",
 )
 
 parser.add_argument("--valores", type=float, nargs="+", required=True, help="Números sobre los que operar. Ej: --valores 10 25 7")

@@ -7,9 +7,7 @@ import requests
 REMOTE_URL = "http://3.144.148.19:6000/task"
 LOCAL_URL = "http://localhost:6000/task"
 
-parser = argparse.ArgumentParser(
-    description="Cliente para ejecutar operaciones matematicas en el servidor."
-)
+parser = argparse.ArgumentParser(description="Cliente para ejecutar operaciones matematicas en el servidor.")
 
 parser.add_argument(
     "--operacion",
@@ -27,9 +25,7 @@ parser.add_argument(
     help="Numeros sobre los que operar. Ej: --valores 10 25 7",
 )
 
-parser.add_argument(
-    "--remote", action="store_true", help="Conectar al servidor remoto en AWS."
-)
+parser.add_argument("--remote", action="store_true", help="Conectar al servidor remoto en AWS.")
 
 parser.add_argument(
     "--lamport",

@@ -132,9 +132,7 @@ def esperar_servicio(puerto, reintentos: int = 30, espera: float = 1.0):
             reintentos,
         )
         time.sleep(espera)
-    raise TimeoutError(
-        f"Servicio en puerto {puerto} no respondio tras {reintentos} intentos."
-    )
+    raise TimeoutError(f"Servicio en puerto {puerto} no respondio tras {reintentos} intentos.")
 
 
 def levantar_containers(n: int) -> list[dict]:
@@ -287,8 +285,7 @@ def recibir_tarea():
         ts_servidor = reloj.incrementar()
 
     logging.info(
-        "Tarea recibida - op: %s, valores: %s, "
-        "lamport_cliente: %d, lamport_servidor: %d",
+        "Tarea recibida - op: %s, valores: %s, lamport_cliente: %d, lamport_servidor: %d",
         operacion,
         valores,
         ts_cliente,

@@ -7,6 +7,7 @@ Uso:
     python benchmark.py --tareas 10 --remote
     python benchmark.py --completo          # Corre para workers=1,2,4,8
 """
+
 import argparse
 import json
 import os
@@ -28,25 +29,27 @@ def enviar_tarea(server_url, resultados, lock):
     }
     inicio = time.time()
     try:
-        resp = requests.post(
-            f"{server_url}/task", json=payload, timeout=180
-        )
+        resp = requests.post(f"{server_url}/task", json=payload, timeout=180)
         duracion = time.time() - inicio
         exito = resp.status_code == 200
         with lock:
-            resultados.append({
-                "exito": exito,
-                "duracion": duracion,
-                "status": resp.status_code,
-            })
+            resultados.append(
+                {
+                    "exito": exito,
+                    "duracion": duracion,
+                    "status": resp.status_code,
+                }
+            )
     except Exception as e:
         duracion = time.time() - inicio
         with lock:
-            resultados.append({
-                "exito": False,
-                "duracion": duracion,
-                "error": str(e),
-            })
+            resultados.append(
+                {
+                    "exito": False,
+                    "duracion": duracion,
+                    "error": str(e),
+                }
+            )
 
 
 def correr_benchmark(server_url, num_tareas):
@@ -70,9 +73,7 @@ def correr_benchmark(server_url, num_tareas):
 
     duracion_total = time.time() - inicio_total
     exitosas = sum(1 for r in resultados if r["exito"])
-    throughput = (
-        (exitosas / duracion_total) * 60 if duracion_total > 0 else 0
-    )
+    throughput = (exitosas / duracion_total) * 60 if duracion_total > 0 else 0
     duraciones = [r["duracion"] for r in resultados if r["exito"]]
     promedio = sum(duraciones) / len(duraciones) if duraciones else 0
 
@@ -88,29 +89,31 @@ def correr_benchmark(server_url, num_tareas):
 
 def limpiar_workers():
     for i in range(1, 9):
-        subprocess.run(
-            ["docker", "rm", "-f", f"worker-{i}"], capture_output=True
-        )
+        subprocess.run(["docker", "rm", "-f", f"worker-{i}"], capture_output=True)
 
 
 def main():
-    parser = argparse.ArgumentParser(
-        description="Benchmark de throughput HIT2"
-    )
+    parser = argparse.ArgumentParser(description="Benchmark de throughput HIT2")
     parser.add_argument(
-        "--tareas", type=int, default=8,
+        "--tareas",
+        type=int,
+        default=8,
         help="Numero de tareas concurrentes a enviar.",
     )
     parser.add_argument(
-        "--remote", action="store_true",
+        "--remote",
+        action="store_true",
         help="Usar servidor remoto AWS.",
     )
     parser.add_argument(
-        "--completo", action="store_true",
+        "--completo",
+        action="store_true",
         help="Correr benchmark completo con workers=1,2,4,8.",
     )
     parser.add_argument(
-        "--delay", type=float, default=2.0,
+        "--delay",
+        type=float,
+        default=2.0,
         help="Segundos de delay simulado por tarea (default: 2.0).",
     )
     args = parser.parse_args()
@@ -122,12 +125,9 @@ def main():
         todos_los_resultados = []
 
         for n_workers in configs_workers:
-            print(f"\n{'='*60}")
-            print(
-                f"Benchmark con {n_workers} worker(s) "
-                f"y {args.tareas} tareas"
-            )
-            print(f"{'='*60}")
+            print(f"\n{'=' * 60}")
+            print(f"Benchmark con {n_workers} worker(s) y {args.tareas} tareas")
+            print(f"{'=' * 60}")
 
             # Matar servidor previo y limpiar containers
             subprocess.run(
@@ -162,10 +162,7 @@ def main():
                 time.sleep(1)
 
             if not listo:
-                print(
-                    f"  ERROR: Servidor no arranco "
-                    f"con {n_workers} workers."
-                )
+                print(f"  ERROR: Servidor no arranco con {n_workers} workers.")
                 server_proc.kill()
                 limpiar_workers()
                 continue
@@ -174,22 +171,10 @@ def main():
             metricas["workers"] = n_workers
             todos_los_resultados.append(metricas)
 
-            print(
-                f"  Throughput: "
-                f"{metricas['throughput_por_min']} tareas/min"
-            )
-            print(
-                f"  Latencia promedio: "
-                f"{metricas['latencia_promedio_seg']}s"
-            )
-            print(
-                f"  Exitosas: "
-                f"{metricas['exitosas']}/{metricas['tareas_totales']}"
-            )
-            print(
-                f"  Duracion total: "
-                f"{metricas['duracion_total_seg']}s"
-            )
+            print(f"  Throughput: {metricas['throughput_por_min']} tareas/min")
+            print(f"  Latencia promedio: {metricas['latencia_promedio_seg']}s")
+            print(f"  Exitosas: {metricas['exitosas']}/{metricas['tareas_totales']}")
+            print(f"  Duracion total: {metricas['duracion_total_seg']}s")
 
             server_proc.kill()
             server_proc.wait()
@@ -197,14 +182,10 @@ def main():
             time.sleep(2)
 
         # Tabla resumen
-        print(f"\n{'='*60}")
+        print(f"\n{'=' * 60}")
         print("TABLA RESUMEN DE THROUGHPUT")
-        print(f"{'='*60}")
-        header = (
-            f"{'Workers':<10} {'Throughput/min':<18} "
-            f"{'Latencia(s)':<15} {'Duracion(s)':<15} "
-            f"{'Exitosas':<10}"
-        )
+        print(f"{'=' * 60}")
+        header = f"{'Workers':<10} {'Throughput/min':<18} {'Latencia(s)':<15} {'Duracion(s)':<15} {'Exitosas':<10}"
         print(header)
         print("-" * 68)
 
@@ -224,10 +205,7 @@ def main():
         print(f"\n{'Workers':<10} {'Speedup':<10}")
         print("-" * 20)
         for r in todos_los_resultados:
-            sp = (
-                r["throughput_por_min"] / base_tp
-                if base_tp and base_tp > 0 else 0
-            )
+            sp = r["throughput_por_min"] / base_tp if base_tp and base_tp > 0 else 0
             print(f"{r['workers']:<10} {round(sp, 2):<10}")
 
         # Guardar JSON

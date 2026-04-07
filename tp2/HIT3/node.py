@@ -166,9 +166,7 @@ def iniciar_eleccion():
 
                 alguno_respondio = True
         except Exception:
-            logging.info(
-                f"Nodo-{peer['id']} no respondió al ELECTION (posiblemente caído)."
-            )
+            logging.info(f"Nodo-{peer['id']} no respondió al ELECTION (posiblemente caído).")
 
     if not alguno_respondio:
         # Ningún nodo mayor respondió → me declaro coordinador
@@ -176,9 +174,7 @@ def iniciar_eleccion():
         declarar_coordinador(inicio_eleccion)
     else:
         # Esperar a recibir COORDINATOR de algún nodo mayor
-        logging.info(
-            f"Esperando mensaje COORDINATOR (timeout={ELECTION_TIMEOUT * 2}s)..."
-        )
+        logging.info(f"Esperando mensaje COORDINATOR (timeout={ELECTION_TIMEOUT * 2}s)...")
         if not coordinator_received.wait(timeout=ELECTION_TIMEOUT * 2):
             # Timeout esperando coordinador → iniciar nueva elección
             logging.info("Timeout esperando COORDINATOR. Re-iniciando elección.")
@@ -196,10 +192,7 @@ def declarar_coordinador(inicio_eleccion: float):
     with stats_lock:
         stats["tiempo_ultima_eleccion_ms"] = round(tiempo_ms, 2)
 
-    logging.info(
-        f"*** SOY EL NUEVO LÍDER (ID={NODE_ID}) *** "
-        f"Tiempo de elección: {tiempo_ms:.2f}ms"
-    )
+    logging.info(f"*** SOY EL NUEVO LÍDER (ID={NODE_ID}) *** Tiempo de elección: {tiempo_ms:.2f}ms")
 
     # Notificar a todos los peers
     for peer in peers:
@@ -211,9 +204,7 @@ def declarar_coordinador(inicio_eleccion: float):
             )
             logging.info(f"COORDINATOR enviado a Nodo-{peer['id']}")
         except Exception:
-            logging.info(
-                f"No se pudo notificar COORDINATOR a Nodo-{peer['id']} (posiblemente caído)."
-            )
+            logging.info(f"No se pudo notificar COORDINATOR a Nodo-{peer['id']} (posiblemente caído).")
 
     # Redistribuir tareas pendientes
     redistribuir_tareas()
@@ -276,9 +267,7 @@ def heartbeat_loop():
         except Exception:
             pass
 
-        logging.info(
-            f"¡LÍDER ({peer['host']}) NO RESPONDE! Iniciando elección..."
-        )
+        logging.info(f"¡LÍDER ({peer['host']}) NO RESPONDE! Iniciando elección...")
 
         set_leader(None)
 
@@ -440,9 +429,7 @@ def recibir_tarea():
         )
         return jsonify(resp.json()), resp.status_code
     except Exception:
-        logging.error(
-            f"Líder (Nodo-{current_leader}) no accesible. Iniciando elección."
-        )
+        logging.error(f"Líder (Nodo-{current_leader}) no accesible. Iniciando elección.")
         set_leader(None)
         with tareas_lock:
             tareas_pendientes.append({"operation": operacion, "values": valores})

@@ -35,15 +35,11 @@ def esperar_servicio(puerto, reintentos: int = 20, espera: float = 1.0):
         except requests.exceptions.ConnectionError:
             pass
 
-        logging.info(
-            f"Esperando container en :{puerto} — intento {intento}/{reintentos}"
-        )
+        logging.info(f"Esperando container en :{puerto} — intento {intento}/{reintentos}")
 
         time.sleep(espera)
 
-    raise TimeoutError(
-        f"El servicio en puerto {puerto} no respondió después de {reintentos} intentos."
-    )
+    raise TimeoutError(f"El servicio en puerto {puerto} no respondió después de {reintentos} intentos.")
 
 
 def elimar_container(nombre_container: str):
@@ -80,9 +76,7 @@ def ejecutarServidorTarea():
     puerto_host = encontrar_puerto_libre()
 
     try:
-        logging.info(
-            f"Creando container '{nombre_container}' en puerto {puerto_host}..."
-        )
+        logging.info(f"Creando container '{nombre_container}' en puerto {puerto_host}...")
         subprocess.run(
             [
                 "docker",
@@ -101,13 +95,9 @@ def ejecutarServidorTarea():
         esperar_servicio(puerto_host)
 
         url_tarea = f"http://localhost:{puerto_host}/run"
-        logging.info(
-            f"Enviando tarea al container '{nombre_container}' en {url_tarea}..."
-        )
+        logging.info(f"Enviando tarea al container '{nombre_container}' en {url_tarea}...")
 
-        respuesta = requests.post(
-            url_tarea, json={"operation": operacion, "values": valores}, timeout=60
-        )
+        respuesta = requests.post(url_tarea, json={"operation": operacion, "values": valores}, timeout=60)
 
         respuesta.raise_for_status()
 
@@ -122,9 +112,7 @@ def ejecutarServidorTarea():
 
     except TimeoutError as e:
         logging.error(str(e))
-        return jsonify(
-            {"error": "El servicio del container no respondió a tiempo."}
-        ), 504
+        return jsonify({"error": "El servicio del container no respondió a tiempo."}), 504
 
     except Exception as e:
         logging.error(f"Error inesperado: {str(e)}")

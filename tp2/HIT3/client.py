@@ -8,9 +8,7 @@ REMOTE_URL = "http://3.144.148.19:8080/task"
 
 LOCAL_URL = "http://localhost:8080/task"
 
-parser = argparse.ArgumentParser(
-    description="Cliente HIT3 - Envía tareas al Load Balancer."
-)
+parser = argparse.ArgumentParser(description="Cliente HIT3 - Envía tareas al Load Balancer.")
 
 parser.add_argument(
     "--operacion",
