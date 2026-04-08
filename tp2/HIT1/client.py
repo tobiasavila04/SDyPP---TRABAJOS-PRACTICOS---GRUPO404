@@ -5,7 +5,7 @@ import os
 import requests
 
 REMOTE_URL = "http://3.144.148.19:5015/task"
-LOCAL_URL = "http://localhost:5000/task"
+LOCAL_URL = "http://localhost:5015/task"
 
 parser = argparse.ArgumentParser(description="ejecuta operaciones matemáticas en el servidor.")
 
