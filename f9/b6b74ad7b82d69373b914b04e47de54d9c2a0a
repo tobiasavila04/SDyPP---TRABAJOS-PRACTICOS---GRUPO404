@@ -1,0 +1,19 @@
+tp3/HIT3/docu_ultima_parte_tp3.md
+  s_8f8f917a3d7118::t_9adedc96ddaa6a 1-1124
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.4.8",
+  "base_commit_sha": "f9b6b74ad7b82d69373b914b04e47de54d9c2a0a",
+  "prompts": {},
+  "sessions": {
+    "s_8f8f917a3d7118": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "dbbd70f2-1878-4eee-851a-6cffc3e7ad5e",
+        "model": "claude-sonnet-4-6"
+      },
+      "human_author": "RenzRob <renzomartinrobles99@gmail.com>"
+    }
+  }
+}
