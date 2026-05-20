@@ -1,0 +1,76 @@
+tp3/HIT3/k8s/monitoring/grafana-dashboard.json
+  s_8f8f917a3d7118::t_b37a7c5ab7023c 1-155
+tp3/HIT3/app/dlq_monitor.py
+  s_8f8f917a3d7118::t_436ded38bd46d3 6,10-12,14-15,33,46,50,52,62,65-68,70
+tp3/HIT3/k8s/monitoring/servicemonitor-worker.yaml
+  s_8f8f917a3d7118::t_05b749b27f5e1b 1-14
+tp3/HIT3/k8s/monitoring/monitoring.md
+  s_b90e891342dad5::t_85d95e9f2bdf58 1-245
+tp3/HIT3/app/worker/requirements.txt
+  s_8f8f917a3d7118::t_f1599679d463dd 4
+tp3/HIT3/k8s/joiner.yaml
+  s_8f8f917a3d7118::t_94d4df65204d65 23-25,29-30,33-46
+tp3/HIT3/k8s/monitoring/prometheus-rules.yaml
+  s_8f8f917a3d7118::t_bf3a31cb79151a 1-65
+tp3/HIT3/k8s/monitoring/servicemonitor-joiner.yaml
+  s_8f8f917a3d7118::t_e0b56858221bee 1-14
+tp3/HIT3/app/joiner.py
+  s_8f8f917a3d7118::t_37793dbce09258 9-10,13,16-19,21-24,42,55,64-65,76,78,81,85-86,92-96
+tp3/HIT3/load-testing/requirements.txt
+  s_8f8f917a3d7118::t_0275517c37c74b 1-4
+tp3/HIT3/app/splitter.py
+  s_8f8f917a3d7118::t_498c759b0cbf65 5,10,12,15-18,21,27,44,61,65-68,70,72-73,75-81,83-85
+tp3/HIT3/app/requirements.txt
+  s_8f8f917a3d7118::t_faf3b267bc2a28 4-6
+.github/workflows/deploy_k8s_apps.yml
+  s_8f8f917a3d7118::t_cdc008979fd4f1 50-78,84,87,89,92-93
+tp3/HIT3/load-testing/generate_test_images.py
+  s_8f8f917a3d7118::t_9b96cb9f025308 1-48
+tp3/HIT3/load-testing/locustfile.py
+  s_8f8f917a3d7118::t_71dbdd29592db4 39
+  s_8f8f917a3d7118::t_82ddc68d88b740 1-21,23-38,40-54,57-58,60-136
+  s_8f8f917a3d7118::t_26bc057d0deaf5 22
+  s_8f8f917a3d7118::t_0a858abf133730 55-56,59
+tp3/HIT3/k8s/api.yaml
+  s_8f8f917a3d7118::t_2918d1858df960 1-59
+tp3/HIT3/k8s/monitoring/grafana-dashboard-configmap.yaml
+  s_8f8f917a3d7118::t_921d54c7941be6 1-15
+tp3/HIT3/k8s/monitoring/values-prometheus.yaml
+  s_8f8f917a3d7118::t_4b19119abb562e 1-35
+tp3/HIT3/app/k8s/worker-deployment.yaml
+  s_8f8f917a3d7118::t_b29dde60cacf78 22-23,41-54
+tp3/HIT3/app/api.py
+  s_8f8f917a3d7118::t_10f435c6802f0a 1-109
+tp3/HIT3/app/worker/worker.py
+  s_8f8f917a3d7118::t_b33f2c3c49833b 11-16,27-32,42,45,49,66,77,90-94,99-104,108,110,113
+tp3/HIT3/load-testing/README.md
+  s_8f8f917a3d7118::t_1652274c1f643b 1-91
+tp3/HIT3/k8s/dlq-monitor.yaml
+  s_8f8f917a3d7118::t_5e1799af71ad79 23-25,29-42
+tp3/HIT3/k8s/monitoring/servicemonitor-dlq-monitor.yaml
+  s_8f8f917a3d7118::t_8e092e78118255 1-14
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.4.8",
+  "base_commit_sha": "eac39cfa653696e59a65ec013edd59af7d632059",
+  "prompts": {},
+  "sessions": {
+    "s_8f8f917a3d7118": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "dbbd70f2-1878-4eee-851a-6cffc3e7ad5e",
+        "model": "claude-sonnet-4-6"
+      },
+      "human_author": "RenzRob <renzomartinrobles99@gmail.com>"
+    },
+    "s_b90e891342dad5": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "1b3a2ef0-76b5-42d3-b026-d8453c912a64",
+        "model": "claude-sonnet-4-6"
+      },
+      "human_author": "RenzRob <renzomartinrobles99@gmail.com>"
+    }
+  }
+}
