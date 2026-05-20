@@ -1,0 +1,14 @@
+apiVersion: monitoring.coreos.com/v1
+kind: ServiceMonitor
+metadata:
+  name: sobel-dlq-monitor
+  labels:
+    app: dlq-monitor
+spec:
+  selector:
+    matchLabels:
+      app: dlq-monitor
+  endpoints:
+  - port: metrics
+    path: /metrics
+    interval: 15s

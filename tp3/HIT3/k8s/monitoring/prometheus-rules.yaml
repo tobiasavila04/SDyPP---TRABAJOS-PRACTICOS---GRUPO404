@@ -1,0 +1,65 @@
+apiVersion: monitoring.coreos.com/v1
+kind: PrometheusRule
+metadata:
+  name: sobel-alerts
+  namespace: monitoring
+  labels:
+    # El kube-prometheus-stack detecta reglas con este label
+    release: kube-prometheus-stack
+spec:
+  groups:
+  - name: sobel.queue
+    interval: 30s
+    rules:
+    - alert: RabbitMQQueueDepthHigh
+      # Se activa si la tasa de publicación supera la de procesamiento durante 2 minutos
+      # (proxy de profundidad de cola cuando no hay exporter dedicado de RabbitMQ)
+      expr: |
+        (
+          rate(chunks_published_total[2m]) - rate(chunks_processed_total[2m])
+        ) > 5
+      for: 2m
+      labels:
+        severity: warning
+        team: grupo404
+      annotations:
+        summary: "Cola tareas_sobel con acumulación sostenida"
+        description: |
+          Se están publicando chunks mucho más rápido de lo que se procesan
+          (diferencia > 5 chunks/s por más de 2 minutos).
+          Considerar escalar los workers: kubectl scale deployment sobel-worker --replicas=N
+
+  - name: sobel.workers
+    interval: 30s
+    rules:
+    - alert: WorkerHighErrorRate
+      expr: |
+        (
+          rate(chunks_failed_total[5m])
+          /
+          (rate(chunks_processed_total[5m]) + rate(chunks_failed_total[5m]) + 0.0001)
+        ) > 0.05
+      for: 5m
+      labels:
+        severity: critical
+        team: grupo404
+      annotations:
+        summary: "Tasa de errores en workers > 5%"
+        description: |
+          Más del 5% de los chunks están fallando y siendo enviados a la DLQ.
+          Revisar logs: kubectl logs -l app=sobel-worker --tail=50
+
+  - name: sobel.dlq
+    interval: 30s
+    rules:
+    - alert: DLQPoisonPillsDetected
+      expr: increase(dlq_poison_pill_dropped_total[10m]) > 0
+      for: 1m
+      labels:
+        severity: warning
+        team: grupo404
+      annotations:
+        summary: "Poison pills detectados en DLQ"
+        description: |
+          Se descartaron mensajes con >= 3 fallos en los últimos 10 minutos.
+          Revisar la imagen de entrada o el estado de los workers.

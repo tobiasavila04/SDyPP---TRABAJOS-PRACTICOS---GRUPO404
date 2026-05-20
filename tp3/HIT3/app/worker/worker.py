@@ -8,6 +8,12 @@ from http.server import BaseHTTPRequestHandler, HTTPServer
 import cv2
 import numpy as np
 import pika
+from prometheus_client import Counter, Histogram, generate_latest, CONTENT_TYPE_LATEST
+
+chunks_processed = Counter("chunks_processed_total", "Chunks procesados exitosamente")
+chunks_failed = Counter("chunks_failed_total", "Chunks que fallaron y fueron a DLQ")
+processing_duration = Histogram("processing_duration_seconds", "Tiempo de procesamiento Sobel por chunk")
+
 
 def _start_health_server(port=8080):
     class _Handler(BaseHTTPRequestHandler):
@@ -16,6 +22,12 @@ def _start_health_server(port=8080):
                 body = json.dumps({"service": "sobel-worker", "status": "ok"}).encode()
                 self.send_response(200)
                 self.send_header("Content-Type", "application/json")
+                self.end_headers()
+                self.wfile.write(body)
+            elif self.path == "/metrics":
+                body = generate_latest()
+                self.send_response(200)
+                self.send_header("Content-Type", CONTENT_TYPE_LATEST)
                 self.end_headers()
                 self.wfile.write(body)
             else:
@@ -27,13 +39,14 @@ def _start_health_server(port=8080):
 
     threading.Thread(target=HTTPServer(("0.0.0.0", port), _Handler).serve_forever, daemon=True).start()
 
+
 print(" [*] Iniciando Worker Sobel en Docker...")
 
-RABBIT_HOST = os.getenv("RABBIT_HOST", "rabbitmq") # Cambiado para K8s
+RABBIT_HOST = os.getenv("RABBIT_HOST", "rabbitmq")
 
 _start_health_server()
 
-# Exponential Backoff para la conexión
+
 def connect_to_rabbit(host):
     max_retries = 5
     base_delay = 1
@@ -50,23 +63,20 @@ def connect_to_rabbit(host):
     print(" [X] Falla crítica: No se pudo conectar a RabbitMQ después de varios reintentos.")
     exit(1)
 
+
 connection = connect_to_rabbit(RABBIT_HOST)
 channel = connection.channel()
 
-# Declaramos exchange Fanout para resultados
 channel.exchange_declare(exchange='resultados_exchange', exchange_type='fanout')
 
-# La cola tareas_sobel con DLX la declara el splitter, pero el worker la asume existente.
-# Para evitar errores de re-declaración con diferentes parámetros, no declaramos tareas_sobel aquí 
-# o la declaramos con los mismos parámetros. Lo mejor es que la declare el splitter.
 channel.queue_declare(queue="tareas_sobel", durable=True, arguments={
     'x-dead-letter-exchange': 'dlx_tareas',
     'x-dead-letter-routing-key': 'tareas_sobel_dlq'
 })
 
+
 def callback(ch, method, properties, body):
     try:
-        # 1. Leer el mensaje y decodificar la imagen de Base64
         datos = json.loads(body.decode())
         chunk_id = datos["chunk_id"]
         img_b64 = datos["image_data"]
@@ -77,27 +87,30 @@ def callback(ch, method, properties, body):
         np_arr = np.frombuffer(img_bytes, np.uint8)
         imagen = cv2.imdecode(np_arr, cv2.IMREAD_GRAYSCALE)
 
-        # 2. Aplicar Filtro Sobel
-        sobel_x = cv2.Sobel(imagen, cv2.CV_64F, 1, 0, ksize=3)
-        sobel_y = cv2.Sobel(imagen, cv2.CV_64F, 0, 1, ksize=3)
-        sobel_combinado = cv2.magnitude(sobel_x, sobel_y)
-        sobel_normalizado = np.uint8(np.absolute(sobel_combinado))
+        with processing_duration.time():
+            sobel_x = cv2.Sobel(imagen, cv2.CV_64F, 1, 0, ksize=3)
+            sobel_y = cv2.Sobel(imagen, cv2.CV_64F, 0, 1, ksize=3)
+            sobel_combinado = cv2.magnitude(sobel_x, sobel_y)
+            sobel_normalizado = np.uint8(np.absolute(sobel_combinado))
 
-        # 3. Volver a codificar a Base64
         _, buffer = cv2.imencode(".jpg", sobel_normalizado)
         res_b64 = base64.b64encode(buffer).decode("utf-8")
 
-        # 4. Enviar resultado al EXCHANGE fanout (Pub/Sub)
-        mensaje_resultado = {"chunk_id": chunk_id, "image_data": res_b64}
+        mensaje_resultado = {
+            "job_id": datos.get("job_id"),
+            "chunk_id": chunk_id,
+            "total_chunks": datos.get("total_chunks"),
+            "image_data": res_b64,
+        }
         ch.basic_publish(exchange="resultados_exchange", routing_key="", body=json.dumps(mensaje_resultado))
 
-        # 5. Confirmar que la tarea terminó (ACK)
         ch.basic_ack(delivery_tag=method.delivery_tag)
+        chunks_processed.inc()
         print(f" [<-] Chunk {chunk_id} procesado y enviado al exchange.")
-        
+
     except Exception as e:
         print(f" [X] Error procesando chunk: {e}")
-        # Enviar a la Dead Letter Queue rechazando el mensaje y no re-encolando
+        chunks_failed.inc()
         ch.basic_nack(delivery_tag=method.delivery_tag, requeue=False)
 
 

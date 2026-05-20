@@ -47,19 +47,49 @@ jobs:
           location: us-central1-a
           project_id: ${{ secrets.GCP_PROJECT_ID }}
 
+      - name: Install Helm
+        uses: azure/setup-helm@v3
+        with:
+          version: 'latest'
+
+      # ── Hit #4: Observabilidad ────────────────────────────────────────────
+      - name: Deploy Prometheus + Grafana (kube-prometheus-stack)
+        run: |
+          helm repo add prometheus-community https://prometheus-community.github.io/helm-charts
+          helm repo update
+          helm upgrade --install kube-prometheus-stack prometheus-community/kube-prometheus-stack \
+            --namespace monitoring --create-namespace \
+            -f tp3/HIT3/k8s/monitoring/values-prometheus.yaml \
+            --wait --timeout 5m
+
+      - name: Apply Prometheus rules and ServiceMonitors
+        run: |
+          kubectl apply -f tp3/HIT3/k8s/monitoring/prometheus-rules.yaml
+          kubectl apply -f tp3/HIT3/k8s/monitoring/servicemonitor-worker.yaml
+          kubectl apply -f tp3/HIT3/k8s/monitoring/servicemonitor-joiner.yaml
+          kubectl apply -f tp3/HIT3/k8s/monitoring/servicemonitor-dlq-monitor.yaml
+
+      - name: Import Grafana dashboard
+        run: |
+          kubectl create configmap sobel-grafana-dashboard \
+            --from-file=sobel-hit3.json=tp3/HIT3/k8s/monitoring/grafana-dashboard.json \
+            -n monitoring --dry-run=client -o yaml | kubectl apply -f -
+
+      # ── Hit #3: Aplicaciones ──────────────────────────────────────────────
       - name: Deploy to K8s
         run: |
           # 1.1 Infraestructura
           kubectl apply -f tp3/HIT3/k8s/rabbitmq.yaml
           kubectl apply -f tp3/HIT3/k8s/redis.yaml
-          
+
           # Esperar a que RabbitMQ inicie antes de lanzar las apps
           kubectl rollout status statefulset/rabbitmq -n default
-          
+
           # 1.2 Aplicaciones
+          kubectl apply -f tp3/HIT3/k8s/api.yaml
           kubectl apply -f tp3/HIT3/k8s/joiner.yaml
           kubectl apply -f tp3/HIT3/k8s/dlq-monitor.yaml
-          
-          # El splitter se corre como Job, si se cambia la imagen hay que recrearlo
+
+          # El splitter se corre como Job; recrear si cambió la imagen
           kubectl delete job splitter-job --ignore-not-found
           kubectl apply -f tp3/HIT3/k8s/splitter.yaml

@@ -1,0 +1,14 @@
+apiVersion: monitoring.coreos.com/v1
+kind: ServiceMonitor
+metadata:
+  name: sobel-joiner
+  labels:
+    app: joiner
+spec:
+  selector:
+    matchLabels:
+      app: joiner
+  endpoints:
+  - port: metrics
+    path: /metrics
+    interval: 15s

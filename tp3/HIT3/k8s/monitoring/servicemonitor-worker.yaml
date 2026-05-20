@@ -1,0 +1,14 @@
+apiVersion: monitoring.coreos.com/v1
+kind: ServiceMonitor
+metadata:
+  name: sobel-worker
+  labels:
+    app: sobel-worker
+spec:
+  selector:
+    matchLabels:
+      app: sobel-worker
+  endpoints:
+  - port: metrics
+    path: /metrics
+    interval: 15s

@@ -1,0 +1,35 @@
+# Helm values para prometheus-community/kube-prometheus-stack
+# Despliega Prometheus y Grafana en el nodepool de infraestructura (infra-pool)
+
+prometheus:
+  prometheusSpec:
+    nodeSelector:
+      role: infra
+    # Habilitar scraping de ServiceMonitors en cualquier namespace
+    serviceMonitorSelectorNilUsesHelmValues: false
+    serviceMonitorSelector: {}
+    serviceMonitorNamespaceSelector: {}
+
+grafana:
+  nodeSelector:
+    role: infra
+  adminPassword: "sobel-grupo404"
+  persistence:
+    enabled: true
+    size: 5Gi
+  # Auto-importar dashboards desde ConfigMaps con label grafana_dashboard=1
+  sidecar:
+    dashboards:
+      enabled: true
+      label: grafana_dashboard
+      labelValue: "1"
+      searchNamespace: ALL
+
+alertmanager:
+  alertmanagerSpec:
+    nodeSelector:
+      role: infra
+
+# RabbitMQ exporter — expone métricas de colas para Grafana
+prometheus-rabbitmq-exporter:
+  enabled: false   # activar si se quiere usar el exporter dedicado de RabbitMQ
