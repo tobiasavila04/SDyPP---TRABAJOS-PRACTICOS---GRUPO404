@@ -77,10 +77,6 @@ jobs:
             -n monitoring --dry-run=client -o yaml | kubectl apply -f -
 
       # ── Hit #3: Aplicaciones ──────────────────────────────────────────────
-      - name: Replace DockerHub username
-        run: |
-          sed -i "s|tobiasavila142|${{ secrets.DOCKERHUB_USERNAME }}|g" tp3/HIT3/k8s/*.yaml
-
       - name: Deploy to K8s
         run: |
           # 1.1 Infraestructura

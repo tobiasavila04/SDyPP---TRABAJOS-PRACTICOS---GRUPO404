@@ -13,7 +13,7 @@ spec:
       restartPolicy: Never
       containers:
       - name: splitter
-        image: tu-usuario-dockerhub/sobel-app:latest
+        image: tobiasavila142/sobel-app:latest
         command: ["python", "splitter.py"]
         env:
         - name: RABBIT_HOST
