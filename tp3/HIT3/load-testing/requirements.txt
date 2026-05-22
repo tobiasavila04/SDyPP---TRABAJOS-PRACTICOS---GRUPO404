@@ -1,0 +1,4 @@
+locust>=2.20
+requests>=2.31
+opencv-python-headless>=4.9
+numpy>=1.26

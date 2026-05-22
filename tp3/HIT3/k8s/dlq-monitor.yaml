@@ -20,6 +20,23 @@ spec:
       - name: dlq-monitor
         image: tu-usuario-dockerhub/sobel-app:latest
         command: ["python", "dlq_monitor.py"]
+        ports:
+        - name: metrics
+          containerPort: 8002
         env:
         - name: RABBIT_HOST
           value: "rabbitmq"
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: dlq-monitor
+  labels:
+    app: dlq-monitor
+spec:
+  selector:
+    app: dlq-monitor
+  ports:
+  - name: metrics
+    port: 8002
+    targetPort: 8002

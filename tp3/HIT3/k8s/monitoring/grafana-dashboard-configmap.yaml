@@ -1,0 +1,15 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: sobel-grafana-dashboard
+  namespace: monitoring
+  labels:
+    grafana_dashboard: "1"
+data:
+  sobel-hit3.json: |-
+    # El contenido del dashboard se inyecta via Kustomize o CI/CD.
+    # Ver grafana-dashboard.json en este mismo directorio.
+    # Ejemplo de apply manual:
+    #   kubectl create configmap sobel-grafana-dashboard \
+    #     --from-file=sobel-hit3.json=grafana-dashboard.json \
+    #     -n monitoring --dry-run=client -o yaml | kubectl apply -f -
