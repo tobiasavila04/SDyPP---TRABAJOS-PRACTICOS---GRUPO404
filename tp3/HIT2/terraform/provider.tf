@@ -9,7 +9,7 @@ terraform {
   }
 
   backend "gcs" {
-    bucket = "sdypp-terraform-state-bucket" # Cambiar por el nombre del bucket GCS real
+    bucket = "bucket-tfstate-sdypp-grupo404"
     prefix = "terraform/state/hit2"
   }
 }

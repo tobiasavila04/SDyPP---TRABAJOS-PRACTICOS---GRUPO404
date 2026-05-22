@@ -9,7 +9,7 @@ terraform {
   }
 
   backend "gcs" {
-    bucket = "sdypp-terraform-state-bucket"
+    bucket = "bucket-tfstate-sdypp-grupo404"
     prefix = "terraform/state/hit3-gke"
   }
 }
