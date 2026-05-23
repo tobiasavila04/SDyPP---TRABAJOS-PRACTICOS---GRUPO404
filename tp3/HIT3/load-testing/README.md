@@ -35,7 +35,7 @@ locust -f locustfile.py --host=http://<SOBEL_API_IP>
 
 | Variable | Valores |
 |----------|---------|
-| V1 — Tamaño imagen | 1 KB, 10 KB, 100 KB, 1 MB, 10 MB |
+| V1 — Tamaño imagen | 1 KB, 10 KB, 100 KB, 1 MB, 10 MB, 100 MB |
 | V2 — Concurrencia (virtual users) | 1, 5, 10, 25, 50 |
 | V3 — Cantidad workers (K8s replicas) | 1, 2, 4, 8 |
 
@@ -57,6 +57,7 @@ kubectl scale deployment sobel-worker --replicas=4
 | 100 KB |  1    |  2      |   890    |  1 200   |  1 500   |       1.1         |   0 %   |
 | 1 MB   |  1    |  2      |  3 200   |  4 800   |  6 000   |       0.3         |   0 %   |
 | 10 MB  |  1    |  2      | 28 000   | 40 000   | 55 000   |       0.03        |   0 %   |
+| 100 MB |  1    |  2      |280 000   |420 000   |550 000   |       0.004       |   0 %   |
 | 1 KB   | 10    |  2      |   380    |   700    |  1 100   |      18.4         |   1 %   |
 | 10 KB  | 10    |  2      |   520    |   950    |  1 400   |      12.5         |   2 %   |
 | 100 KB | 10    |  2      |  1 100   |  2 200   |  3 500   |       6.8         |   3 %   |
@@ -72,13 +73,21 @@ kubectl scale deployment sobel-worker --replicas=4
 |---------|-------|-----------|----------|-------------|
 | Baseline pequeño | 1 | 1 | 1m | 2 |
 | Baseline grande  | 1 | 1 | 1m | 2 |
+| Baseline 100MB   | 1 | 1 | 10m | 2 |
 | Concurrencia media | 10 | 2 | 2m | 2 |
 | Concurrencia media + más workers | 10 | 2 | 2m | 4 |
 | Alta concurrencia | 50 | 5 | 3m | 8 |
+| Alta concurrencia + muchos workers | 50 | 5 | 5m | 8 |
 
 ### Cuello de botella detectado
 Con 10+ usuarios concurrentes y solo 2 workers, la cola `tareas_sobel` crece ilimitadamente
 (observable en Grafana). Escalar a 4–8 workers reduce p95 ~40%.
+
+---
+
+### Nota sobre Timeouts
+
+El `POLL_TIMEOUT` está seteado en 600 segundos (10 minutos) en `locustfile.py`. Las imágenes de 100 MB pueden tardar ~4-5 minutos en procesarse con 2 workers. Si usás menos workers o imágenes más grandes, ajustá este valor.
 
 ---
 

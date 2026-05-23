@@ -2,7 +2,7 @@
 Locust load test para la API de procesamiento Sobel distribuido.
 
 Variables probadas:
-  V1 — Tamaño de imagen : 1KB | 10KB | 100KB | 1MB | 10MB
+  V1 — Tamaño de imagen : 1KB | 10KB | 100KB | 1MB | 10MB | 100MB
   V2 — Concurrencia     : controlada con --users y --spawn-rate de Locust
   V3 — Cantidad workers : variable externa (escalar el Deployment en K8s)
 
@@ -44,7 +44,7 @@ def _load_image(label: str) -> str:
 # ---------------------------------------------------------------------------
 # Helpers
 # ---------------------------------------------------------------------------
-POLL_TIMEOUT = 120   # segundos máximos esperando resultado
+POLL_TIMEOUT = 600   # 10 min máximos (100 MB puede tardar ~4-5 min con 2 workers)
 POLL_INTERVAL = 1    # segundos entre polls
 
 
@@ -129,8 +129,12 @@ class SobelUser(HttpUser):
 
 class HeavyUser(HttpUser):
     """Usuario que solo manda imágenes grandes — útil para medir saturación."""
-    wait_time = between(2, 5)
+    wait_time = between(5, 15)
 
-    @task
+    @task(3)
     def process_heavy(self):
         _process_image(self, "10MB")
+
+    @task(1)
+    def process_extreme(self):
+        _process_image(self, "100MB")
