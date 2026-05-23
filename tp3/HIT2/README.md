@@ -1,54 +1,85 @@
-# TP3 - Grupo 404 | HIT #2: Sobel con Offloading en la Nube (Cloud-Bursting)
+# HIT 2 - Cloud Bursting con Terraform
 
-Para esta etapa, armamos una **base elástica** para procesar las imágenes del Hit #1. Básicamente implementamos el patrón de *Cloud-Bursting*: si la carga local es demasiada, "desbordamos" el trabajo hacia la nube levantando VMs bajo demanda con Terraform, y cuando terminan, las destruimos para no quemar créditos.
+Básicamente lo que hicimos acá fue extender el HIT1 para que los workers puedan correr en la nube (GCP) en vez de solo localmente. La idea del cloud bursting es: cuando la cola de RabbitMQ se llena de laburo, levantamos VMs en Google Cloud, ellas procesan los chunks del Sobel, y cuando terminamos las destruimos para no gastar guita al pedo.
 
-## Arquitectura Híbrida
+La parte linda es que Terraform se encarga de todo el aprovisionamiento automáticamente, nosotros solo corremos un Python script y listo.
 
-Como pedía el TP, el enfoque de esta etapa es híbrido (On-premise + Cloud). 
+## Cómo ejecutar esto (para que funcione en la pc de un profe)
 
-```mermaid
-flowchart LR
-    subgraph "On-Premise (Local)"
-        S[Splitter] -->|Publica chunks| RMQ[(RabbitMQ / Redis)]
-        RMQ -->|Entrega resultados| J[Joiner]
-    end
+### Prerequisitos
 
-    subgraph "Nube (GCP)"
-        direction TB
-        W1[Worker VM 1]
-        W2[Worker VM 2]
-        WN[Worker VM N]
-    end
+- Tener una cuenta de GCP con un proyecto creado y facturación habilitada (sí, hay que poner tarjeta, pero con las VMs e2-micro el costo es mínimo si las destruís rápido)
+- Tener instalado:
+  - [Terraform](https://developer.hashicorp.com/terraform/install) (>= 1.3)
+  - [Ngrok](https://ngrok.com/download) (la version gratuita alcanza)
+  - [Python 3](https://www.python.org/downloads/)
+  - Docker (para correr RabbitMQ y los workers locales del HIT1)
+- Tener las credenciales de GPC configuradas. La forma mas facil es:
+  1. Ir a GCP Console > IAM > Cuentas de servicio
+  2. Crear una cuenta de servicio con rol "Editor"
+  3. Generar una key JSON y descargarla
+  4. Setear la variable de entorno:
+     ```powershell
+     $env:GOOGLE_APPLICATION_CREDENTIALS = "ruta\a\tu-key.json"
+     ```
 
-    %% Conexiones vía Ngrok o VPN
-    RMQ <-->|Túnel Seguro (Ej. Ngrok)| W1
-    RMQ <-->|Túnel Seguro (Ej. Ngrok)| W2
-    RMQ <-->|Túnel Seguro (Ej. Ngrok)| WN
+### Paso a paso
+
+**1. RabbitMQ local**
+
+Primero necesitamos que RabbitMQ esté corriendo en nuestra máquina para que los workers se conecten:
+
+```powershell
+docker run -d --name rabbitmq -p 5672:5672 -p 15672:15672 rabbitmq:3-management
 ```
 
-### ¿Por qué lo armamos así?
+**2. Levantar el túnel con Ngrok**
 
-1. **RabbitMQ / Redis (Local):**
-   * Decidimos dejar el sistema de mensajería corriendo local.
-   * **El motivo:** El Splitter y el Joiner interactúan un montón con la cola para mandar el peso de la imagen. Si subíamos la cola a la nube, íbamos a tener que subir la imagen completa desde el Splitter por la red, lo cual es lentísimo. Manteniendo la cola local, solo mandamos el tráfico de los pedacitos (chunks) a los workers. Para lograr esto sin exponer los puertos crudos a internet, pasamos la conexión de RabbitMQ por un túnel seguro tipo Ngrok.
+RabbitMQ corre local en el puerto 5672. Las VMs de GCP no pueden llegar a `localhost` de nuestra compu, entonces usamos Ngrok para exponer ese puerto con una URL pública:
 
-2. **Workers (GCP):**
-   * Todo el trabajo pesado de CPU (procesar el filtro Sobel) lo mandamos a VMs de Google Cloud que levantamos con Terraform.
-   * **El motivo:** Nos da **elasticidad**. Si la cola explota de mensajes, levantamos instancias en GCP en 2 minutos para que absorban el laburo, y apenas se vacía la cola las matamos (`terraform destroy`). Esto cumple con las características de *On-demand self-service* y *Measured service* del paper del NIST.
+```powershell
+ngrok tcp 5672
+```
 
-3. **Orquestador (`orquestador.py` / Terraform):**
-   * Armamos un script que corre local para disparar los comandos de Terraform (`apply` para crear, `destroy` para apagar).
+Esto te va a mostrar una URL tipo `0.tcp.ngrok.io:12345`. La URL completa incluyendo el puerto es lo que vamos a necesitar en el próximo paso.
 
-## Tradeoffs y el Teorema CAP (Para la defensa)
+**3. Setear variables de entorno**
 
-Tuvimos que pensar bien qué priorizar:
-* **Consistencia vs Disponibilidad en RabbitMQ:** RabbitMQ tradicionalmente prioriza la **Consistencia y la Tolerancia a Particiones (CP)**. En nuestro modelo híbrido, internet es el eslabón débil. Si se cae el WiFi de nuestra casa, los workers de Google pierden la conexión. RabbitMQ se da cuenta de esto y no da los mensajes por perdidos, sino que los vuelve a encolar para mantener la consistencia. O sea, prioriza no perder datos por encima de seguir respondiendo a todo bajo fallas severas de red.
+El orquestador necesita dos variables para funcionar (si no las setea, tira error y no arranca):
 
-## El ciclo de vida de los Workers
+```powershell
+$env:TF_VAR_project_id = "el-id-de-tu-proyecto-gcp"
+$env:TF_VAR_rabbitmq_host = "0.tcp.ngrok.io:12345"   # la URL que te dio ngrok
+```
 
-Para que quede claro qué pasa cuando corremos el orquestador:
-1. **Provisioning**: Terraform le avisa a la API de GCP que nos cree VMs nuevas.
-2. **Bootstrap**: Usamos el `metadata_startup_script` en Terraform para que la VM instale Docker ni bien prende.
-3. **Deploy**: Ahí mismo le decimos que se baje nuestra imagen `sobel-worker` desde DockerHub.
-4. **Join**: Levantamos el contenedor pasándole como variable de entorno la URL de Ngrok que apunta a nuestro RabbitMQ local. Ni bien levanta, arranca a consumir de la cola.
-5. **Teardown**: Cuando terminamos, corremos `terraform destroy` para volar las VMs y no gastar plata.
+**4. Correr el orquestador**
+
+Pararse en la carpeta `tp3/HIT2/` y ejecutar:
+
+```powershell
+python orquestador.py
+```
+
+Esto hace:
+- `terraform init` para descargar los providers de GCP
+- `terraform apply` que crea las VMs en GCP (por defecto 2 VMs e2-micro)
+- Espera 60 segundos para que las VMs arranquen, instalen Docker y bajen la imagen del worker
+- Te queda esperando que apretés ENTER
+
+**5. En otra terminal, correr splitter y joiner del HIT1**
+
+Mientras el orquestador está esperando, abrí otra terminal y corre:
+
+```
+# Terminal 1: el joiner
+python tp3/HIT1/parte_2_distribuido/joiner.py
+
+# Terminal 2: el splitter
+python tp3/HIT1/parte_2_distribuido/splitter.py
+```
+
+Los workers de GCP van a agarrar los chunks de la cola y procesarlos.
+
+**6. Destruir todo**
+
+Cuando termines de procesar las imágenes, volvé a la terminal del orquestador y apretá ENTER. Terraform va a ejecutar `destroy` y apagar las VMs para no gastar más créditos.

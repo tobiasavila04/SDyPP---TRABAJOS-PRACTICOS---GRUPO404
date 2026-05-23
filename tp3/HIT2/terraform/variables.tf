@@ -35,5 +35,5 @@ variable "rabbitmq_host" {
 variable "worker_image" {
   description = "Nombre de la imagen Docker del worker de Sobel"
   type        = string
-  default     = "miusuario/sobel-worker:latest" # Cambiar por el registro público real
+  default     = "tobiasavila142/sobel-worker:latest"
 }

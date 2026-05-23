@@ -43,5 +43,10 @@ gitleaks-report.sarif
 *.swo
 *~
 
+# Terraform
+**/.terraform/
+*.tfstate
+*.tfstate.backup
+
 # OS
 Thumbs.db
